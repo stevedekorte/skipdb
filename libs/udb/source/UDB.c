@@ -135,7 +135,12 @@ void UDB_setCommittedFlag_(UDB *self, int flag)
 {
 	fseek(self->committedFile, 0, SEEK_SET);
 	fputc(flag, self->committedFile);
-	fcntl(fileno(self->committedFile), F_FULLFSYNC, NULL);
+	#ifdef F_FULLFSYNC
+		fcntl(fileno(self->committedFile), F_FULLFSYNC, NULL);
+	#else
+		#warning Linux doesn't support syncing to physical media
+		fsync(fileno(self->committedFile));
+	#endif
 }
 
 void UDB_commitTransaction(UDB *self)

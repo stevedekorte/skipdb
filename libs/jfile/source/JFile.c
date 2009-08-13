@@ -124,7 +124,13 @@ void JFile_open(JFile *self)
 		self->log = fopen(self->logPath, "w");
 		fclose(self->log);
 		self->log = fopen(self->logPath, "r+");
-		fcntl(fileno(self->log), F_PREALLOCATE, self->logHighWaterMark);
+		#ifdef F_PREALLOCATE
+			// OSX
+			fcntl(fileno(self->log), F_PREALLOCATE, self->logHighWaterMark);
+		#else
+			// Linux
+			posix_fallocate(fileno(self->log), 0, self->logHighWaterMark);
+		#endif
 	}
 	else
 	{
@@ -255,24 +261,45 @@ long JFile_setPositionToEnd(JFile *self)
 	return self->pos;
 }
 
+void JFile_hardSyncFileDescriptor_(JFile *self, int fd)
+{
+	#ifdef F_FULLFSYNC
+		fcntl(fd, F_FULLFSYNC, NULL);
+	#else
+		#warning Linux can't ensure data sync to physical media
+		fsync(fd);
+	#endif
+}
+
 void JFile_syncFileWritesToDisk(JFile *self)
 {
 	//printf("f"); fflush(stdout);
 	fflush(self->file);
-	if(self->fullSync) fcntl(fileno(self->file), F_FULLFSYNC, NULL);
+	
+	if(self->fullSync) 
+	{
+		JFile_hardSyncFileDescriptor_(self, fileno(self->file));
+	}
 }
 
 void JFile_syncLogWritesToDisk(JFile *self)
 {
 	//printf("j"); fflush(stdout);
 	fflush(self->log);
-	if (self->fullSync) fcntl(fileno(self->log), F_FULLFSYNC, NULL);
+	if (self->fullSync) 
+	{
+			JFile_hardSyncFileDescriptor_(self, fileno(self->log));
+	}
+	
 	fseek(self->log, -1, SEEK_END);
 	
 	fputc(JFILE_END_TRANSACTION, self->log);
 	
 	fflush(self->log);
-	if (self->fullSync) fcntl(fileno(self->log), F_FULLFSYNC, NULL);
+	if (self->fullSync) 
+	{
+			JFile_hardSyncFileDescriptor_(self, fileno(self->log));
+	}
 }
 
 void JFile_writeLogToFileIfNeeded(JFile *self)
