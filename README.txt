@@ -12,6 +12,8 @@ int main(void)
 	Datum value;
 	int count;
 
+	// open
+	
 	SkipDB *db = SkipDB_new();
 	SkipDB_setPath_(db, "test.skipdb");
 	SkipDB_open(db);
@@ -41,6 +43,8 @@ int main(void)
 	// there's also a cursor API
 	// not shown in this example code
 
+	// close
+	
 	SkipDB_close(db);
 	
 	return 0;
