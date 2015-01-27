@@ -10,6 +10,7 @@ int main(void)
 {
 	Datum key;
 	Datum value;
+	int count;
 
 	SkipDB *db = SkipDB_new();
 	SkipDB_setPath_(db, "test.skipdb");
@@ -26,12 +27,19 @@ int main(void)
 	// read
 	
 	value = SkipDB_at_(db, key);
+	
+	// count
+	
+	count = SkipDB_count(db);
 
 	// remove
 	
 	SkipDB_beginTransaction(db);
 	SkipDB_removeAt_(db, key);
 	SkipDB_commitTransaction(db);
+	
+	// there's also a cursor API
+	// not shown in this example code
 
 	SkipDB_close(db);
 	
