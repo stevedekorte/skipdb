@@ -18,14 +18,24 @@ int main(void)
 	SkipDB_setPath_(db, "test.skipdb");
 	SkipDB_open(db);
 	
-	SkipDB_beginTransaction(db);
+	// write
 	
+	SkipDB_beginTransaction(db);
 	key = Datum_FromCString_("testKey");
 	value = Datum_FromCString_("testValue");
 	SkipDB_at_put_(db, key, value);
-
 	SkipDB_commitTransaction(db);
 	
+	// read
+	
+	value = SkipDB_at_(db, key);
+
+	// remove
+	
+	SkipDB_beginTransaction(db);
+	SkipDB_removeAt_(db, key);
+	SkipDB_commitTransaction(db);
+
 	SkipDB_close(db);
 	
 	return 0;
