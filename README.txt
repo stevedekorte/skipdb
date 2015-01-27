@@ -5,9 +5,6 @@ The license is Revised BSD.
 Example:
 
 #include "SkipDB.h"
-#include <time.h>
-#include <stdlib.h>
-#include "Date.h"
 
 int main(void)
 {
